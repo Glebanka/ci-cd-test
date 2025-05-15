@@ -1,0 +1,36 @@
+#sortable-images {
+    margin: 0;
+    padding: 0;
+    display: flex;
+    list-style: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    user-select: none;
+}
+
+#sortable-images img {
+    cursor: move;
+    margin: 10px;
+}
+
+.ghost {
+    opacity: .4;
+}
+
+.image-container {
+    position: relative;
+    display: inline-block;
+}
+
+.delete-image-btn {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background: red;
+    color: white;
+    border: none;
+    cursor: pointer;
+    padding: 10px;
+    line-height: 0.5;
+    border-radius: 20px;
+}

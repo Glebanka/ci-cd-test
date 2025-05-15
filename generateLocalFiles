@@ -1,0 +1,140 @@
+<?php
+class LocalFileGenerator
+{
+    private $configContent;
+    private $mainConfigContent;
+    private $indexContent;
+    private $dbContent;
+    private $requiredBaseDirs;
+    private $requiredConfigs;
+    private $fileContents;
+    private $baseDirContent;
+    public function __construct()
+    {
+        $this->baseDirContent = scandir(__DIR__);
+        $this->setFileContents();
+        $this->setDirs();
+        $this->createLocalFiles();
+        $this->sendSuccessMessage();
+    }
+    private function setFileContents()
+    {
+        $this->configContent = <<<EOT
+<?php
+return[
+];
+EOT;
+        $this->mainConfigContent = "
+<?php
+return [
+    'components' => [
+    'request' => [
+    'cookieValidationKey' => \"" . bin2hex(random_bytes(32)) . "\" 
+    ],
+    ],
+];
+";
+        $this->indexContent = '
+<?php
+
+defined("YII_DEBUG") or define("YII_DEBUG", true);
+defined("YII_ENV") or define("YII_ENV", "dev");
+
+require __DIR__ . "/../../vendor/autoload.php";
+require __DIR__ . "/../../vendor/yiisoft/yii2/Yii.php";
+require __DIR__ . "/../../common/config/bootstrap.php";
+require __DIR__ . "/../config/bootstrap.php";
+
+$config = yii\helpers\ArrayHelper::merge(
+    require __DIR__ . "/../../common/config/main.php",
+    require __DIR__ . "/../../common/config/main-local.php",
+    require __DIR__ . "/../config/main.php",
+    require __DIR__ . "/../config/main-local.php"
+);
+
+(new yii\web\Application($config))->run();
+';
+
+        $this->dbContent = "
+<?php
+return [
+    'class' => 'yii\db\Connection',
+    'dsn' => 'mysql:host=localhost;dbname=',
+    'username' => 'root',
+    'password' => '',
+    'charset' => 'utf8',
+    'tablePrefix' => '',
+];
+";
+    }
+    private function setDirs()
+    {
+        $this->requiredBaseDirs = [
+            "backend",
+            "frontend",
+            "common",
+            "console",
+            "config"
+        ];
+        $this->requiredConfigs = [
+            "main-local.php",
+            "params-local.php",
+            "test-local.php",
+        ];
+        $this->fileContents = [
+            "config" => $this->configContent,
+            "main-local" => $this->mainConfigContent,
+            "index" => $this->indexContent,
+            "db" => $this->dbContent
+        ];
+    }
+    private function createLocalFiles()
+    {
+        // first level
+        foreach ($this->requiredBaseDirs as $requiredBaseDir) {
+            $requiredBaseDirPath = __DIR__ . "/$requiredBaseDir";
+            if ($this->findElement($requiredBaseDir, $this->baseDirContent)) {
+                // second level
+                if ($this->findElement("config", scandir($requiredBaseDir))) {
+                    if ($requiredBaseDir == "frontend" || $requiredBaseDir == "backend") {
+                        $this->writeToFile("$requiredBaseDirPath/web/index.php", $this->fileContents["index"]);
+                    }
+                    if ($requiredBaseDir == "common") {
+                        $this->writeToFile("$requiredBaseDirPath/config/db.php", $this->fileContents["db"]);
+                    } elseif ($requiredBaseDir == "frontend" || $requiredBaseDir == "backend") {
+                        //echo "$requiredBaseDirPath/config/main-local.php";
+                        $this->writeToFile("$requiredBaseDirPath/config/main-local.php", $this->fileContents["main-local"]);
+                    }
+                    foreach ($this->requiredConfigs as $requiredConfig) {
+                        $this->writeToFile("$requiredBaseDirPath/config/$requiredConfig", $this->fileContents["config"]);
+                    }
+                    // config is independent dir
+                } elseif ($requiredBaseDir == "config") {
+                    foreach ($this->requiredConfigs as $requiredConfig) {
+                        $this->writeToFile("$requiredBaseDirPath/$requiredConfig", $this->fileContents["config"]);
+                    }
+                }
+                // generate index files
+
+            }
+        }
+    }
+    private function findElement($folderName, $dirContent)
+    {
+        return in_array($folderName, $dirContent);
+    }
+    private function writeToFile($path, $content)
+    {
+        // non-rewriting method
+        if (!file_exists($path)) {
+            $file = fopen($path, "w");
+            fwrite($file, $content);
+            fclose($file);
+        }
+    }
+    private function sendSuccessMessage()
+    {
+        echo "Local files generated successfully!";
+    }
+}
+new LocalFileGenerator();
