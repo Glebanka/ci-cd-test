@@ -10,7 +10,7 @@ $this->params['breadcrumbs'][] = $this->title;
 ?>
 <h2>Корзина (<span class="js-items-counter"></span>)</h2>
 <div class="cart">
-    
+
 </div>
 <button class="mt-2 js-cart-clear">Очистить корзину</button>
 
