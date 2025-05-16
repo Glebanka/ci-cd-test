@@ -12,35 +12,40 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Add ssh key
+      - name: Add SSH key
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/key
           chmod 600 ~/.ssh/key
 
-      - name: Deploy via SSH
+      - name: Wait for SSH to become available
         run: |
           MAX_RETRIES=5
           RETRY_DELAY=5
           ATTEMPT=1
-          COMMANDS=$(cat << 'COMMANDS_EOF'
-            cd git.uwtest.ru/public_html
-            git pull origin main
-            composer install --no-interaction --prefer-dist --optimize-autoloader
-          COMMANDS_EOF
-          )
 
           while [ $ATTEMPT -le $MAX_RETRIES ]; do
-            echo "Попытка $ATTEMPT/$MAX_RETRIES..."
-            if ssh -i ~/.ssh/key -o ConnectTimeout=10 -o StrictHostKeyChecking=no cx43946@vh370.timeweb.ru "$COMMANDS"; then
-              echo "Успешно!"
-              exit 0
+            echo "Попытка SSH-подключения #$ATTEMPT..."
+            if ssh -i ~/.ssh/key -o ConnectTimeout=10 -o StrictHostKeyChecking=no cx43946@vh370.timeweb.ru 'echo "✅ SSH готов!"'; then
+              echo "✅ Подключение успешно!"
+              break
             else
-              SSH_EXIT_CODE=$?
-              echo "Ошибка (код $SSH_EXIT_CODE). Повтор через $RETRY_DELAY сек..."
+              echo "❌ Не удалось подключиться. Повтор через $RETRY_DELAY сек..."
               sleep $RETRY_DELAY
               ((ATTEMPT++))
             fi
           done
-          echo "Слишком много ошибок! Выход."
-          exit 1
+
+          if [ $ATTEMPT -gt $MAX_RETRIES ]; then
+            echo "❌ Слишком много неудачных попыток SSH-подключения."
+            exit 1
+          fi
+
+      - name: Deploy via SSH
+        run: |
+          ssh -i ~/.ssh/key -o StrictHostKeyChecking=no cx43946@vh370.timeweb.ru << 'EOF'
+            set -e
+            cd git.uwtest.ru/public_html
+            git pull origin main
+            composer install --no-interaction --prefer-dist --optimize-autoloader
+          EOF
