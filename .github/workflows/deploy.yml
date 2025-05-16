@@ -24,15 +24,16 @@ jobs:
         continue-on-error: true
         run: |
           echo "🚀 Начинаем деплой по SSH"
-          ssh -i ~/.ssh/key -o ConnectTimeout=10 -o StrictHostKeyChecking=no cx43946@vh370.timeweb.ru << 'EOF'
-            cd git.uwtest.ru/public_html
-            git pull origin main
+          
+          ssh -i ~/.ssh/key -o ConnectTimeout=10 -o StrictHostKeyChecking=no cx43946@vh370.timeweb.ru '
+            cd git.uwtest.ru/public_html && \
+            git pull origin main && \
             composer install --no-interaction --prefer-dist --optimize-autoloader
-          EOF
-          ssh_exit_code=$?
-          echo "SSH завершился с кодом $ssh_exit_code"
+          '
+          status=$?
+          echo "SSH завершился с кодом $status"
 
-          if [ $ssh_exit_code -ne 0 ]; then
+          if [ $status -ne 0 ]; then
             echo "ssh_failed=true" >> $GITHUB_OUTPUT
           else
             echo "ssh_failed=false" >> $GITHUB_OUTPUT
