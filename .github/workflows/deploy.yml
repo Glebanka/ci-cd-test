@@ -20,8 +20,8 @@ jobs:
 
       - name: Deploy via SSH
         run: |
-          MAX_RETRIES=3
-          RETRY_DELAY=10
+          MAX_RETRIES=5
+          RETRY_DELAY=5
           ATTEMPT=1
           COMMANDS=$(cat << 'COMMANDS_EOF'
             cd git.uwtest.ru/public_html
@@ -32,7 +32,7 @@ jobs:
 
           while [ $ATTEMPT -le $MAX_RETRIES ]; do
             echo "Попытка $ATTEMPT/$MAX_RETRIES..."
-            if ssh -i ~/.ssh/key -o ConnectTimeout=15 -o StrictHostKeyChecking=no cx43946@vh370.timeweb.ru "$COMMANDS"; then
+            if ssh -i ~/.ssh/key -o ConnectTimeout=10 -o StrictHostKeyChecking=no cx43946@vh370.timeweb.ru "$COMMANDS"; then
               echo "Успешно!"
               exit 0
             else
