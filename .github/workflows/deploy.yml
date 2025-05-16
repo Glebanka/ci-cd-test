@@ -20,21 +20,17 @@ jobs:
           curl -s ifconfig.me
           echo ""
           echo "📡 Проверка пинга до vh370.timeweb.ru..."
-          ping_output=$(ping -c 4 vh370.timeweb.ru)
-          echo "$ping_output"
-      
-          if ! echo "$ping_output" | grep -q 'bytes from'; then
-            echo "ping_failed=true" >> "$GITHUB_OUTPUT"
+          echo ping -c 4 vh370.timeweb.ru
+          if ! ping -c 4 vh370.timeweb.ru | grep 'bytes from'; then
+            echo "ping_failed=true" >> $GITHUB_OUTPUT
           else
-            echo "ping_failed=false" >> "$GITHUB_OUTPUT"
+            echo "ping_failed=false" >> $GITHUB_OUTPUT
           fi
 
       - name: Retry workflow if ping failed
         if: ${{ steps.ping_check.outputs.ping_failed == 'true' }}
         run: |
           echo "⛔ Пинг не прошёл. Перезапускаем workflow через API..."
-          echo ${{ steps.ping_check.outputs.ping_failed }}
-          echo steps.ping_check.outputs.ping_failed
           curl -X POST \
             -H "Accept: application/vnd.github+json" \
             -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
