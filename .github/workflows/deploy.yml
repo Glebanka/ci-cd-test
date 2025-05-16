@@ -18,12 +18,9 @@ jobs:
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/key
           chmod 600 ~/.ssh/key
 
-      - name: Connect via SSH
+      - name: Deploy via SSH
         run: |
-          ssh -i ~/.ssh/key -o StrictHostKeyChecking=no cx43946@vh370.timeweb.ru
-
-      - name: Deploy
-        run: |
-          cd git.uwtest.ru/public_html
-          git pull origin main
-      
+          ssh -i ~/.ssh/key -o StrictHostKeyChecking=no cx43946@vh370.timeweb.ru << 'EOF'
+            cd git.uwtest.ru/public_html
+            git pull origin main
+          EOF
