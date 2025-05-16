@@ -19,11 +19,9 @@ jobs:
           chmod 600 ~/.ssh/key
 
       - name: Deploy via SSH
-        env:
-          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
         run: |
           ssh -i ~/.ssh/key -o StrictHostKeyChecking=no cx43946@vh370.timeweb.ru << 'EOF'
-            cd $DEPLOY_PATH
+            cd /git.uwtest.ru/public_html
             git pull origin main
             composer install --no-interaction --prefer-dist --optimize-autoloader
             php yii migrate --interactive=0
