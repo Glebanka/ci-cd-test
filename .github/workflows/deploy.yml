@@ -12,19 +12,17 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Add SSH key via agent
-        uses: webfactory/ssh-agent@v0.7.0
-        with:
-          ssh-private-key: |
-            ${{ secrets.SSH_PRIVATE_KEY }}
-
-      - name: Setup host verification
+      - name: SSH and run commands
+        env:
+          PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }} # Reference the private key stored in GitHub Secrets
         run: |
-          mkdir -p ~/.ssh
-          ssh-keyscan -H vh370.timeweb.ru >> ~/.ssh/known_hosts
+          echo "$PRIVATE_KEY" > private_key.pem # Write the private key to a file
+          chmod 600 private_key.pem # Set the appropriate permissions for the key file
 
-      - name: Test connection
-        run: ssh cx43946@vh370.timeweb.ru 'echo "🔥 Подключение работает!"'
+          # Establish an SSH connection and execute commands on the remote server
+          ssh -o StrictHostKeyChecking=no -i private_key.pem cx43946@vh370.timeweb.ru <<EOF
+          EOF
+          rm -f private_key.pem
 
 
 
