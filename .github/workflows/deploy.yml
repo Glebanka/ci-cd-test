@@ -12,23 +12,19 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Setup SSH key
+      - name: Add SSH key to agent
+        uses: webfactory/ssh-agent@v0.7.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Setup known hosts
         run: |
           mkdir -p ~/.ssh
-          cat <<EOF > ~/.ssh/id_rsa
-          ${{ secrets.SSH_PRIVATE_KEY }}
-          EOF
-          chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H vh370.timeweb.ru >> ~/.ssh/known_hosts
-
-      - name: Debug SSH files
-        run: |
-          ls -la ~/.ssh
-          cat ~/.ssh/id_rsa
 
       - name: Run remote command
         run: |
-          ssh -o StrictHostKeyChecking=no cx43946@vh370.timeweb.ru 'echo "✅ Успешное подключение по ключу"'
+          ssh cx43946@vh370.timeweb.ru 'echo "✅ Успешное подключение по ключу"'
 
 
 
