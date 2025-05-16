@@ -1,24 +1,26 @@
-name: Deploy Yii via SSH with password
+name: Deploy via SSH
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Install sshpass
-        run: sudo apt-get install -y sshpass
-
-      - name: SSH Test Connection Only
+      - name: Setup SSH key
         run: |
-          sshpass -p "${{ secrets.SSH_PASSWORD }}" ssh -v -o StrictHostKeyChecking=no ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} "echo '✔ Connected to SSH'"
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H vh370.timeweb.ru >> ~/.ssh/known_hosts
+
+      - name: Run remote command
+        run: |
+          ssh -v cx43946@vh370.timeweb.ru 'echo "✅ Успешное подключение по ключу"'
 
 
       # - name: Deploy via SSH
