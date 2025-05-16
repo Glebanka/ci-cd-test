@@ -14,7 +14,7 @@ jobs:
 
       - name: Add ssh key
         run: |
-          mkdir ~/.ssh
+          mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/key
           chmod 600 ~/.ssh/key
 
@@ -23,18 +23,21 @@ jobs:
           MAX_RETRIES=3
           RETRY_DELAY=10
           ATTEMPT=1
+          COMMANDS=$(cat << 'COMMANDS_EOF'
+            cd git.uwtest.ru/public_html
+            git pull origin main
+            composer install --no-interaction --prefer-dist --optimize-autoloader
+          COMMANDS_EOF
+          )
 
           while [ $ATTEMPT -le $MAX_RETRIES ]; do
             echo "Попытка $ATTEMPT/$MAX_RETRIES..."
-            if ssh -i ~/.ssh/key -o ConnectTimeout=15 -o StrictHostKeyChecking=no cx43946@vh370.timeweb.ru << 'EOF'; then
-              cd git.uwtest.ru/public_html
-              git pull origin main
-              composer install --no-interaction --prefer-dist --optimize-autoloader
-              EOF
+            if ssh -i ~/.ssh/key -o ConnectTimeout=15 -o StrictHostKeyChecking=no cx43946@vh370.timeweb.ru "$COMMANDS"; then
               echo "Успешно!"
               exit 0
             else
-              echo "Ошибка. Повтор через $RETRY_DELAY сек..."
+              SSH_EXIT_CODE=$?
+              echo "Ошибка (код $SSH_EXIT_CODE). Повтор через $RETRY_DELAY сек..."
               sleep $RETRY_DELAY
               ((ATTEMPT++))
             fi
