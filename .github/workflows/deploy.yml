@@ -49,7 +49,7 @@ jobs:
 
       - name: Deploy via SSH
         run: |
-          ssh -i ~/.ssh/key -o StrictHostKeyChecking=no cx43946@vh370.timeweb.ru << 'EOF'
+          ssh -i ~/.ssh/key -o ConnectTimeout=10 -o StrictHostKeyChecking=no cx43946@vh370.timeweb.ru << 'EOF'
             set -e
             cd git.uwtest.ru/public_html
             git pull origin main
