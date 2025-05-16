@@ -1,10 +1,3 @@
-name: Deploy via SSH
-
-on:
-  push:
-    branches: [main]
-  workflow_dispatch: 
-
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -23,31 +16,22 @@ jobs:
         id: ssh_step
         run: |
           echo "🚀 Начинаем деплой по SSH"
-          
-          (
-            set +e
-            ssh -i ~/.ssh/key -o ConnectTimeout=10 \
-                -o StrictHostKeyChecking=no cx43946@vh370.timeweb.ru << 'EOF'
-              set -e
-              cd git.uwtest.ru/public_html
-              git pull origin main
-              composer install --no-interaction --prefer-dist --optimize-autoloader
-            EOF
-            echo $? > ssh_exit_code
-          )
-      
-          # 2) Читаем и выводим код выхода
-          status=$(< ssh_exit_code)
-          echo "SSH завершился с кодом: $status"
-      
-          # 3) Устанавливаем output для условий
-          if [ "$status" -ne 0 ]; then
-            echo "ssh_failed=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "ssh_failed=false" >> "$GITHUB_OUTPUT"
-          fi
+          set +e
+          ssh -i ~/.ssh/key -o ConnectTimeout=10 -o StrictHostKeyChecking=no cx43946@vh370.timeweb.ru << 'EOF'
+            set -e
+            cd git.uwtest.ru/public_html
+            git pull origin main
+            composer install --no-interaction --prefer-dist --optimize-autoloader
+          EOF
+          ssh_exit_code=$?
+          set -e
+          echo "SSH завершился с кодом $ssh_exit_code"
 
-        continue-on-error: true
+          if [ $ssh_exit_code -ne 0 ]; then
+            echo "ssh_failed=true" >> $GITHUB_OUTPUT
+          else
+            echo "ssh_failed=false" >> $GITHUB_OUTPUT
+          fi
 
       - name: Retry workflow if SSH failed
         if: steps.ssh_step.outputs.ssh_failed == 'true'
