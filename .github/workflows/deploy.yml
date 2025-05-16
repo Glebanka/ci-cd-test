@@ -15,42 +15,32 @@ jobs:
       - name: Check connectivity to server
         id: ping_check
         run: |
-          echo "🔍 Checking ping to vh370.timeweb.ru..."
-          if ping -c 4 vh370.timeweb.ru | grep '0 received'; then
-            echo "Пинг не проходит, перезапускаю workflow..."
-            exit 78
+          echo "🔍 IP GitHub-раннера:"
+          curl -s ifconfig.me
+          echo ""
+          echo "📡 Проверка пинга до vh370.timeweb.ru..."
+          if ! ping -c 4 vh370.timeweb.ru | grep 'bytes from'; then
+            echo "ping_failed=true" >> $GITHUB_OUTPUT
           else
-            echo "✅ Пинг успешен. Продолжаем."
+            echo "ping_failed=false" >> $GITHUB_OUTPUT
           fi
+
+      - name: Retry workflow if ping failed
+        if: steps.ping_check.outputs.ping_failed == 'true'
+        run: |
+          echo "⛔ Пинг не прошёл. Перезапускаем workflow через API..."
+          curl -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            https://api.github.com/repos/${{ github.repository }}/actions/workflows/${{ github.workflow }}.yml/dispatches \
+            -d '{"ref":"${{ github.ref_name }}"}'
+          exit 1  # завершить текущий с ошибкой, чтобы избежать двойного деплоя
 
       - name: Add SSH key
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/key
           chmod 600 ~/.ssh/key
-
-      - name: Wait for SSH to become available
-        run: |
-          MAX_RETRIES=2
-          RETRY_DELAY=5
-          ATTEMPT=1
-
-          while [ $ATTEMPT -le $MAX_RETRIES ]; do
-            echo "Попытка SSH-подключения #$ATTEMPT..."
-            if ssh -i ~/.ssh/key -o ConnectTimeout=10 -o StrictHostKeyChecking=no cx43946@vh370.timeweb.ru 'echo "✅ SSH готов!"'; then
-              echo "✅ Подключение успешно!"
-              break
-            else
-              echo "❌ Не удалось подключиться. Повтор через $RETRY_DELAY сек..."
-              sleep $RETRY_DELAY
-              ((ATTEMPT++))
-            fi
-          done
-
-          if [ $ATTEMPT -gt $MAX_RETRIES ]; then
-            echo "❌ Слишком много неудачных попыток SSH-подключения."
-            exit 1
-          fi
 
       - name: Deploy via SSH
         run: |
