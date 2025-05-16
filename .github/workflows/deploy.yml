@@ -20,22 +20,25 @@ jobs:
           curl -s ifconfig.me
           echo ""
           echo "📡 Проверка пинга до vh370.timeweb.ru..."
+          ping -c 4 vh370.timeweb.ru
           if ! ping -c 4 vh370.timeweb.ru | grep 'bytes from'; then
             echo "ping_failed=true" >> $GITHUB_OUTPUT
+            echo fail
           else
             echo "ping_failed=false" >> $GITHUB_OUTPUT
+            echo true
           fi
 
-      - name: Retry workflow if ping failed
-        if: ${{ steps.ping_check.outputs.ping_failed == 'true' }}
-        run: |
-          echo "⛔ Пинг не прошёл. Перезапускаем workflow через API..."
-          curl -X POST \
-            -H "Accept: application/vnd.github+json" \
-            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-            https://api.github.com/repos/${{ github.repository }}/actions/workflows/deploy.yml/dispatches \
-            -d '{"ref":"${{ github.ref_name }}"}'
-          exit 1 
+      # - name: Retry workflow if ping failed
+      #   if: ${{ steps.ping_check.outputs.ping_failed == 'true' }}
+      #   run: |
+      #     echo "⛔ Пинг не прошёл. Перезапускаем workflow через API..."
+      #     curl -X POST \
+      #       -H "Accept: application/vnd.github+json" \
+      #       -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+      #       https://api.github.com/repos/${{ github.repository }}/actions/workflows/deploy.yml/dispatches \
+      #       -d '{"ref":"${{ github.ref_name }}"}'
+      #     exit 1 
 
       - name: Add SSH key
         run: |
