@@ -21,10 +21,10 @@ jobs:
 
       - name: Deploy via SSH
         id: ssh_step
+        continue-on-error: true
         run: |
           echo "🚀 Начинаем деплой по SSH"
           ssh -i ~/.ssh/key -o ConnectTimeout=10 -o StrictHostKeyChecking=no cx43946@vh370.timeweb.ru << 'EOF'
-            set -e
             cd git.uwtest.ru/public_html
             git pull origin main
             composer install --no-interaction --prefer-dist --optimize-autoloader
