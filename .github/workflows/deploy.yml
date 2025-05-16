@@ -21,7 +21,7 @@ jobs:
       - name: Deploy via SSH
         run: |
           ssh -i ~/.ssh/key -o StrictHostKeyChecking=no cx43946@vh370.timeweb.ru << 'EOF'
-            cd /git.uwtest.ru/public_html
+            cd git.uwtest.ru/public_html
             git pull origin main
             composer install --no-interaction --prefer-dist --optimize-autoloader
           EOF
