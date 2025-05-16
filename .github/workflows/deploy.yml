@@ -12,18 +12,16 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Print runner public IP and check server
+      - name: Check connectivity to server
+        id: ping_check
         run: |
-          echo "🔍 IP GitHub-раннера:"
-          curl -s https://api.ipify.org
-          echo ""
-
-          echo "📡 Проверка DNS и пинга до сервера:"
-          nslookup vh370.timeweb.ru || true
-          ping -c 4 vh370.timeweb.ru || true
-
-          echo "🧭 Traceroute (маршрут до сервера):"
-          traceroute vh370.timeweb.ru || echo "traceroute не установлен"
+          echo "🔍 Checking ping to vh370.timeweb.ru..."
+          if ping -c 4 vh370.timeweb.ru | grep '0 received'; then
+            echo "Пинг не проходит, перезапускаю workflow..."
+            exit 78
+          else
+            echo "✅ Пинг успешен. Продолжаем."
+          fi
 
       - name: Add SSH key
         run: |
