@@ -7,6 +7,7 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -14,16 +15,14 @@ jobs:
       - name: Setup SSH key
         run: |
           mkdir -p ~/.ssh
-          cat << 'EOF' > ~/.ssh/id_rsa
-          ${{ secrets.SSH_PRIVATE_KEY }}
-          EOF
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H vh370.timeweb.ru >> ~/.ssh/known_hosts
 
-
       - name: Run remote command
         run: |
-          ssh -v cx43946@vh370.timeweb.ru 'echo "✅ Успешное подключение по ключу"'
+          ssh -o StrictHostKeyChecking=no cx43946@vh370.timeweb.ru 'echo "✅ Успешное подключение по ключу"'
+
 
 
       # - name: Deploy via SSH
