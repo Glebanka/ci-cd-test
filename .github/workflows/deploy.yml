@@ -18,11 +18,22 @@ jobs:
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/key
           chmod 600 ~/.ssh/key
       
-      - name: Deploy via SSH
-        run: |
-          ssh -i ~/.ssh/key -o StrictHostKeyChecking=no cx43946@vh370.timeweb.ru <<EOF
-            cd $DEPLOY_PATH
-            git pull origin main
-            composer install --no-interaction --prefer-dist --optimize-autoloader
-            php yii migrate --interactive=0
-          EOF
+      - name: ssh connection
+        run: ssh -i ~/.ssh/key -o StrictHostKeyChecking=no cx43946@vh370.timeweb.ru
+
+
+
+      # - name: Deploy via SSH
+
+      #   env:
+      #     SSH_USER: ${{ secrets.SSH_USERNAME }}
+      #     SSH_PASS: ${{ secrets.SSH_PASSWORD }}
+      #     SSH_HOST: ${{ secrets.SSH_HOST }}
+      #     DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+      #   run: |
+      #     sshpass -p "$SSH_PASS" ssh -o StrictHostKeyChecking=no "$SSH_USER@$SSH_HOST" <<EOF
+      #       cd $DEPLOY_PATH
+      #       git pull origin main
+      #       composer install --no-interaction --prefer-dist --optimize-autoloader
+      #       php yii migrate --interactive=0
+      #     EOF
