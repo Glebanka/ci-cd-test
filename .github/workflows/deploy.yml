@@ -20,7 +20,7 @@ jobs:
 
       - name: Wait for SSH to become available
         run: |
-          MAX_RETRIES=5
+          MAX_RETRIES=10
           RETRY_DELAY=5
           ATTEMPT=1
 
