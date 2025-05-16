@@ -15,9 +15,16 @@ jobs:
       - name: Setup SSH key
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          cat <<EOF > ~/.ssh/id_rsa
+          ${{ secrets.SSH_PRIVATE_KEY }}
+          EOF
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H vh370.timeweb.ru >> ~/.ssh/known_hosts
+
+      - name: Debug SSH files
+        run: |
+          ls -la ~/.ssh
+          cat ~/.ssh/id_rsa
 
       - name: Run remote command
         run: |
