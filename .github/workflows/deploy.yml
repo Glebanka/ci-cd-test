@@ -12,6 +12,19 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: Print runner public IP and check server
+        run: |
+          echo "🔍 IP GitHub-раннера:"
+          curl -s https://api.ipify.org
+          echo ""
+
+          echo "📡 Проверка DNS и пинга до сервера:"
+          nslookup vh370.timeweb.ru || true
+          ping -c 4 vh370.timeweb.ru || true
+
+          echo "🧭 Traceroute (маршрут до сервера):"
+          traceroute vh370.timeweb.ru || echo "traceroute не установлен"
+
       - name: Add SSH key
         run: |
           mkdir -p ~/.ssh
@@ -20,7 +33,7 @@ jobs:
 
       - name: Wait for SSH to become available
         run: |
-          MAX_RETRIES=10
+          MAX_RETRIES=2
           RETRY_DELAY=5
           ATTEMPT=1
 
