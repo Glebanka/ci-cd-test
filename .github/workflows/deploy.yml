@@ -20,7 +20,9 @@ jobs:
           curl -s ifconfig.me
           echo ""
           echo "📡 Проверка пинга до vh370.timeweb.ru..."
-          if ! ping -c 4 vh370.timeweb.ru | grep 'bytes from'; then
+          ping_output=$(ping -c 4 vh370.timeweb.ru)
+          echo "$ping_output"
+          if ! echo "$ping_output" | grep 'bytes from'; then
             echo "ping_failed=true" >> $GITHUB_OUTPUT
           else
             echo "ping_failed=false" >> $GITHUB_OUTPUT
